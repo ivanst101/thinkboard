@@ -1,6 +1,6 @@
 # ThinkBoard 🧠
 
-A responsive full‑stack application for recording your thoughts, built with React and Tailwind CSS.
+A responsive full‑stack application for recording your thoughts, built with React, Express, and Tailwind CSS.
 
 ---
 
