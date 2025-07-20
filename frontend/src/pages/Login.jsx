@@ -1,17 +1,48 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router";
 
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({ email: "", password: "" });
 
-  function handleSignUpForm(e) {
+  const navigate = useNavigate();
+
+  async function handleSignUpForm(e) {
     e.preventDefault();
 
     if (!email.trim() || !password.trim()) {
       toast.error("All fields are required");
       return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:5001/login", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        if (data.errors?.email) toast.error(data.errors.email);
+        if (data.errors?.password) toast.error(data.errors.password);
+        setErrors(data.errors);
+        return;
+      }
+
+      toast.success("Logged in successfully!");
+      setErrors({ email: "", password: "" });
+      setEmail("");
+      setPassword("");
+
+      navigate("/");
+    } catch (err) {
+      console.log(err);
+      toast.error("Something went wrong");
     }
   }
 
@@ -30,7 +61,8 @@ function Login() {
             onChange={(e) => setEmail(e.target.value)}
             className="p-2 rounded-md"
           />
-          <div className="bg-error text-white"></div>
+          {errors.email && <div className="text-red-500">{errors.email}</div>}
+
           <label htmlFor="password">Password</label>
           <input
             type="password"
@@ -40,7 +72,9 @@ function Login() {
             onChange={(e) => setPassword(e.target.value)}
             className="p-2 rounded-md"
           />
-          <div className="bg-error text-white"></div>
+          {errors.password && (
+            <div className="text-red-500">{errors.password}</div>
+          )}
           <button className="btn btn-primary">Log in</button>
         </form>
       </div>

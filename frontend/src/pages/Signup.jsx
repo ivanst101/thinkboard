@@ -1,17 +1,45 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router";
 
 function Signup() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({ email: "", password: "" });
 
-  function handleSignUpForm(e) {
+  const navigate = useNavigate();
+
+  async function handleSignUpForm(e) {
     e.preventDefault();
 
     if (!email.trim() || !password.trim()) {
       toast.error("All fields are required");
       return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:5001/signup", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        setErrors(data.errors);
+        toast.error("Signup failed. Please check your inputs!");
+        return;
+      }
+
+      toast.success("Signed up successfully!");
+      setErrors({ email: "", password: "" });
+      setEmail("");
+      setPassword("");
+
+      navigate("/");
+    } catch (error) {
+      console.log(error);
     }
   }
 
@@ -30,7 +58,11 @@ function Signup() {
             onChange={(e) => setEmail(e.target.value)}
             className="p-2 rounded-md"
           />
-          <div className="bg-error text-white"></div>
+          {errors.email && (
+            <div className="bg-red-500 text-white px-2 py-1 rounded">
+              {errors.email}
+            </div>
+          )}
           <label htmlFor="password">Password</label>
           <input
             type="password"
@@ -40,7 +72,11 @@ function Signup() {
             onChange={(e) => setPassword(e.target.value)}
             className="p-2 rounded-md"
           />
-          <div className="bg-error text-white"></div>
+          {errors.password && (
+            <div className="bg-red-500 text-white px-2 py-1 rounded">
+              {errors.password}
+            </div>
+          )}
           <button className="btn btn-primary">Sign Up</button>
         </form>
       </div>
